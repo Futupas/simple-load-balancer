@@ -1,0 +1,54 @@
+version: '3.8'
+
+services:
+  dotnet-service-1:
+    image: mcr.microsoft.com/dotnet/sdk:7.0
+    container_name: dotnet-service-1
+    volumes:
+      - ./Responder:/app
+    working_dir: /app
+    command: ["dotnet", "run", "--urls", "http://0.0.0.0:80"]
+  
+  dotnet-service-2:
+    image: mcr.microsoft.com/dotnet/sdk:7.0
+    container_name: dotnet-service-2
+    volumes:
+      - ./Responder:/app
+    working_dir: /app
+    command: ["dotnet", "run", "--urls", "http://0.0.0.0:80"]
+    
+  dotnet-service-3:
+    image: mcr.microsoft.com/dotnet/sdk:7.0
+    container_name: dotnet-service-3
+    volumes:
+      - ./Responder:/app
+    working_dir: /app
+    command: ["dotnet", "run", "--urls", "http://0.0.0.0:80"]
+    
+  haproxy:
+    image: haproxy:latest
+    container_name: haproxy
+    depends_on:
+      - dotnet-service-1
+      - dotnet-service-2
+      - dotnet-service-3
+    volumes:
+      - ./haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg
+    ports:
+      - "8080:80"
+    command: ["haproxy", "-f", "/usr/local/etc/haproxy/haproxy.cfg", "-db"]
+  
+  
+  dotnet-console-app:
+    image: mcr.microsoft.com/dotnet/sdk:7.0
+    container_name: dotnet-console-app
+    depends_on:
+      - haproxy
+    volumes:
+      - ./Requester:/app
+    working_dir: /app
+    command: ["dotnet", "run"]
+
+
+# sudo docker-compose stop haproxy && sudo docker-compose rm -f haproxy && sudo docker-compose up haproxy
+
